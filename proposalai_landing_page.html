@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProposalAI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;
+  --text:#0a0a0a;
+  --muted:#6b7280;
+  --border:rgba(0,0,0,0.08);
+  --surface:#f9f9f9;
+  --accent:#0a0a0a;
+  --font:'DM Sans',system-ui,sans-serif;
+  --serif:'DM Serif Display',Georgia,serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.container{max-width:1080px;margin:0 auto;padding:0 1.5rem}
+.fade-up{opacity:0;transform:translateY(24px);transition:opacity .5s ease,transform .5s ease}
+.fade-up.visible{opacity:1;transform:none}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;transition:background .3s,border-color .3s,backdrop-filter .3s}
+nav.scrolled{background:rgba(255,255,255,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;padding:.95rem 1.5rem;max-width:1080px;margin:0 auto}
+.logo{font-size:1rem;font-weight:500;color:var(--text);text-decoration:none;letter-spacing:-.01em}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{font-size:.875rem;color:var(--muted);text-decoration:none;transition:color .15s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:var(--text);color:#fff;padding:.5rem 1.1rem;border-radius:999px;font-size:.875rem;font-weight:500;text-decoration:none;transition:opacity .15s}
+.nav-cta:hover{opacity:.75}
+.nav-mobile-hide{display:flex;gap:2rem}
+@media(max-width:640px){.nav-mobile-hide{display:none}.logo{font-size:.95rem}}
+
+/* HERO */
+.hero{padding:11rem 0 5rem;text-align:center}
+.eyebrow{display:inline-flex;align-items:center;gap:.45rem;font-size:.75rem;font-weight:500;color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:.3rem .85rem;margin-bottom:2rem;letter-spacing:.04em;text-transform:uppercase}
+.eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--text);opacity:.3}
+h1.headline{font-size:clamp(2.8rem,6vw,5rem);font-weight:500;line-height:1.07;letter-spacing:-.03em;margin-bottom:1.5rem}
+h1.headline .dim{color:var(--muted);font-weight:300}
+.hero-sub{font-size:1rem;color:var(--muted);max-width:400px;margin:0 auto 2.5rem;line-height:1.65}
+.cta-row{display:flex;gap:.85rem;justify-content:center;flex-wrap:wrap}
+.btn-primary{background:var(--text);color:#fff;padding:.65rem 1.5rem;border-radius:999px;font-size:.9rem;font-weight:500;text-decoration:none;transition:opacity .15s;border:none;cursor:pointer}
+.btn-primary:hover{opacity:.75}
+.btn-ghost{background:transparent;color:var(--text);padding:.65rem 1.5rem;border-radius:999px;font-size:.9rem;font-weight:500;text-decoration:none;transition:opacity .15s;border:1.5px solid rgba(0,0,0,.15);cursor:pointer}
+.btn-ghost:hover{opacity:.55}
+
+/* DEMO CARD */
+.demo-section{padding:3rem 0 6rem}
+.demo-card{background:var(--surface);border:1px solid var(--border);border-radius:1.25rem;padding:2rem;max-width:780px;margin:0 auto;display:grid;grid-template-columns:1fr auto 1fr;gap:1.25rem;align-items:start}
+.demo-pane-label{font-size:.7rem;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.65rem}
+.demo-textarea{width:100%;min-height:160px;background:#fff;border:1px solid var(--border);border-radius:.75rem;padding:1rem;font-size:.875rem;font-family:var(--font);color:var(--text);resize:none;outline:none;transition:border-color .2s;line-height:1.6}
+.demo-textarea:focus{border-color:rgba(0,0,0,.2)}
+.demo-arrow{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.75rem;padding-top:1.8rem}
+.arrow-icon{width:32px;height:32px;border-radius:50%;background:#fff;border:1px solid var(--border);display:flex;align-items:center;justify-content:center}
+.btn-gen{background:var(--text);color:#fff;border:none;border-radius:999px;padding:.5rem 1rem;font-size:.8rem;font-weight:500;cursor:pointer;transition:opacity .15s;white-space:nowrap}
+.btn-gen:hover{opacity:.75}
+.proposal-preview{background:#fff;border:1px solid var(--border);border-radius:.75rem;padding:1.25rem;min-height:160px;font-size:.8rem;line-height:1.7;color:var(--text)}
+.proposal-preview .p-name{font-weight:600;font-size:.875rem;margin-bottom:.35rem}
+.proposal-preview .p-line{color:var(--muted);margin-bottom:.2rem}
+.proposal-preview .p-section{margin-top:.75rem;font-weight:500;font-size:.8rem}
+.proposal-preview .p-body{color:var(--muted)}
+.cursor{display:inline-block;width:2px;height:.85em;background:var(--text);margin-left:1px;animation:blink .7s step-end infinite;vertical-align:text-bottom}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.placeholder-text{color:var(--muted);font-size:.8rem;opacity:.55}
+@media(max-width:640px){.demo-card{grid-template-columns:1fr;}.demo-arrow{padding-top:0;flex-direction:row;justify-content:flex-start}}
+
+/* SOCIAL PROOF */
+.social-bar{padding:2.5rem 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.social-inner{display:flex;align-items:center;justify-content:center;gap:1.5rem;flex-wrap:wrap}
+.avatars{display:flex}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--surface);border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:600;color:var(--muted);margin-left:-8px}
+.avatar:first-child{margin-left:0}
+.social-text{font-size:.875rem;color:var(--muted)}
+.social-text strong{color:var(--text);font-weight:500}
+.rating{display:flex;align-items:center;gap:.35rem;font-size:.8rem;color:var(--muted)}
+.stars{color:#0a0a0a;letter-spacing:1px;font-size:.75rem}
+
+/* FEATURES */
+.features{padding:7rem 0}
+.section-label{font-size:.7rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem}
+.section-title{font-size:clamp(1.75rem,3.5vw,2.75rem);font-weight:500;letter-spacing:-.025em;line-height:1.15;margin-bottom:1rem}
+.section-title .dim{color:var(--muted);font-weight:300}
+.section-sub{color:var(--muted);font-size:.95rem;max-width:420px;margin-bottom:4rem}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:1rem;overflow:hidden}
+.feature-card{background:var(--bg);padding:2rem 1.75rem;transition:background .2s}
+.feature-card:hover{background:var(--surface)}
+.feat-icon{width:32px;height:32px;margin-bottom:1.25rem;opacity:.65}
+.feat-name{font-size:.95rem;font-weight:500;margin-bottom:.35rem}
+.feat-desc{font-size:.85rem;color:var(--muted);line-height:1.55}
+@media(max-width:768px){.features-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.features-grid{grid-template-columns:1fr}}
+
+/* HOW IT WORKS */
+.how{padding:7rem 0;background:var(--surface)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:3rem;margin-top:4rem}
+.step-num{font-size:4rem;font-weight:300;color:rgba(0,0,0,.07);line-height:1;margin-bottom:1.25rem;font-family:var(--serif)}
+.step-title{font-size:1rem;font-weight:500;margin-bottom:.4rem}
+.step-desc{font-size:.875rem;color:var(--muted);line-height:1.6}
+@media(max-width:640px){.steps{grid-template-columns:1fr;gap:2.5rem}}
+
+/* PRICING */
+.pricing{padding:7rem 0}
+.pricing-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;max-width:640px;margin:4rem auto 0}
+.price-card{background:var(--surface);border:1px solid var(--border);border-radius:1.25rem;padding:2.25rem 2rem;position:relative}
+.price-card.featured{background:#fff;border:2px solid var(--text)}
+.popular-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;font-size:.7rem;font-weight:500;padding:.3rem .9rem;border-radius:999px;white-space:nowrap;letter-spacing:.03em}
+.plan-name{font-size:.75rem;font-weight:500;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.75rem}
+.plan-price{font-size:2.75rem;font-weight:300;letter-spacing:-.04em;margin-bottom:.35rem}
+.plan-price sup{font-size:1.1rem;font-weight:500;vertical-align:top;margin-top:.5rem;margin-right:1px}
+.plan-period{font-size:.8rem;color:var(--muted);margin-bottom:1.75rem}
+.plan-features{list-style:none;margin-bottom:2rem}
+.plan-features li{font-size:.875rem;color:var(--muted);padding:.4rem 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem}
+.plan-features li:last-child{border-bottom:none}
+.check{width:14px;height:14px;flex-shrink:0}
+.plan-btn{display:block;text-align:center;padding:.65rem;border-radius:999px;font-size:.875rem;font-weight:500;text-decoration:none;transition:opacity .15s;cursor:pointer}
+.plan-btn.dark{background:var(--text);color:#fff;border:none}
+.plan-btn.dark:hover{opacity:.75}
+.plan-btn.outline{background:transparent;color:var(--text);border:1.5px solid rgba(0,0,0,.15)}
+.plan-btn.outline:hover{opacity:.55}
+@media(max-width:480px){.pricing-grid{grid-template-columns:1fr}}
+
+/* TESTIMONIALS */
+.testimonials{padding:7rem 0;background:var(--surface)}
+.testimonials-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:4rem}
+.testimonial{background:#fff;border:1px solid var(--border);border-radius:1rem;padding:1.75rem}
+.t-quote{font-size:.9rem;line-height:1.65;color:var(--text);margin-bottom:1.5rem}
+.t-author{display:flex;align-items:center;gap:.75rem}
+.t-avatar{width:36px;height:36px;border-radius:50%;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:600;color:var(--muted);flex-shrink:0}
+.t-name{font-size:.8rem;font-weight:500}
+.t-role{font-size:.75rem;color:var(--muted)}
+@media(max-width:768px){.testimonials-grid{grid-template-columns:1fr;max-width:440px;margin-left:auto;margin-right:auto}}
+
+/* FINAL CTA */
+.final-cta{background:#0a0a0a;padding:8rem 0;text-align:center}
+.final-cta h2{font-size:clamp(2.25rem,5vw,4.25rem);font-weight:500;color:#fff;letter-spacing:-.03em;line-height:1.1;margin-bottom:1.5rem;font-family:var(--serif)}
+.final-cta h2 em{font-style:italic;color:rgba(255,255,255,.45)}
+.final-cta p{color:rgba(255,255,255,.4);font-size:.95rem;margin-bottom:2.5rem}
+.btn-white{background:#fff;color:#0a0a0a;padding:.7rem 1.75rem;border-radius:999px;font-size:.95rem;font-weight:500;text-decoration:none;transition:opacity .15s;display:inline-block}
+.btn-white:hover{opacity:.85}
+
+/* FOOTER */
+footer{padding:4rem 0 3rem;border-top:1px solid var(--border)}
+.footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:3rem}
+.footer-logo{font-size:1rem;font-weight:500;margin-bottom:.5rem}
+.footer-tagline{font-size:.8rem;color:var(--muted);max-width:200px;line-height:1.6}
+.footer-col h4{font-size:.75rem;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:1rem}
+.footer-col ul{list-style:none}
+.footer-col li{margin-bottom:.5rem}
+.footer-col a{font-size:.85rem;color:var(--muted);text-decoration:none;transition:color .15s}
+.footer-col a:hover{color:var(--text)}
+.footer-bottom{margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);font-size:.8rem;color:var(--muted)}
+@media(max-width:640px){.footer-grid{grid-template-columns:1fr;gap:2.5rem}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <a href="#" class="logo">ProposalAI</a>
+    <ul class="nav-links nav-mobile-hide">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="#testimonials">Examples</a></li>
+    </ul>
+    <a href="#" class="nav-cta">Get started free</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="eyebrow fade-up">
+      <span class="eyebrow-dot"></span>
+      AI-powered &nbsp;·&nbsp; New
+    </div>
+    <h1 class="headline fade-up">
+      Win more clients.<br>
+      <span class="dim">Write less.</span>
+    </h1>
+    <p class="hero-sub fade-up">ProposalAI turns a one-sentence brief into a polished, client-ready proposal — in under 30 seconds.</p>
+    <div class="cta-row fade-up">
+      <a href="#" class="btn-primary">Start for free</a>
+      <a href="#demo" class="btn-ghost">See it in action</a>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO CARD -->
+<section class="demo-section" id="demo">
+  <div class="container">
+    <div class="demo-card fade-up">
+      <div>
+        <p class="demo-pane-label">Your brief</p>
+        <textarea class="demo-textarea" id="briefInput" placeholder="e.g. Brand identity redesign for a fintech startup — logo, colors, type system. 3 rounds of revisions. Delivery in 4 weeks."></textarea>
+      </div>
+      <div class="demo-arrow">
+        <div class="arrow-icon">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 4l4 3-4 3" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <button class="btn-gen" id="generateBtn">Generate</button>
+      </div>
+      <div>
+        <p class="demo-pane-label">Your proposal</p>
+        <div class="proposal-preview" id="proposalOutput">
+          <p class="placeholder-text">Your AI-written proposal will appear here…</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOCIAL PROOF -->
+<div class="social-bar">
+  <div class="container">
+    <div class="social-inner">
+      <div class="avatars">
+        <div class="avatar" style="background:#e8f0fe;color:#4a6fa5">JS</div>
+        <div class="avatar" style="background:#fce8f3;color:#9b4b7a">MR</div>
+        <div class="avatar" style="background:#e8f5e9;color:#3a7d44">TD</div>
+        <div class="avatar" style="background:#fff3e0;color:#8d5e1a">AK</div>
+        <div class="avatar" style="background:#f3e8ff;color:#6b3fa0">LC</div>
+      </div>
+      <p class="social-text">Used by <strong>2,400+</strong> freelancers and agencies</p>
+      <div class="rating">
+        <span class="stars">★★★★★</span>
+        <span>4.9 / 5 from 840 reviews</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="container">
+    <p class="section-label fade-up">Features</p>
+    <h2 class="section-title fade-up">Everything you need<br><span class="dim">to close the deal.</span></h2>
+    <p class="section-sub fade-up">From first draft to signed contract — ProposalAI handles the writing, pricing, and tracking so you can focus on your clients.</p>
+    <div class="features-grid fade-up">
+      <div class="feature-card">
+        <svg class="feat-icon" viewBox="0 0 32 32" fill="none"><path d="M6 8h20M6 13h14M6 18h10" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round"/><path d="M20 22l3 3 5-6" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <p class="feat-name">AI writes the copy</p>
+        <p class="feat-desc">Tailored to your industry, tone, and service type — never generic.</p>
+      </div>
+      <div class="feature-card">
+        <svg class="feat-icon" viewBox="0 0 32 32" fill="none"><rect x="5" y="8" width="22" height="16" rx="2" stroke="#0a0a0a" stroke-width="1.5"/><path d="M10 16h4M10 19h8" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round"/><path d="M19 12l4 4-4 4" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <p class="feat-name">Smart pricing</p>
+        <p class="feat-desc">Suggests rates based on scope, market data, and your history.</p>
+      </div>
+      <div class="feature-card">
+        <svg class="feat-icon" viewBox="0 0 32 32" fill="none"><path d="M16 7v4M9.1 9.1l2.8 2.8M7 16h4M9.1 22.9l2.8-2.8M16 25v-4M22.9 22.9l-2.8-2.8M25 16h-4M22.9 9.1l-2.8 2.8" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round"/><circle cx="16" cy="16" r="3" stroke="#0a0a0a" stroke-width="1.5"/></svg>
+        <p class="feat-name">Track opens</p>
+        <p class="feat-desc">Get notified the moment a client opens your proposal.</p>
+      </div>
+      <div class="feature-card">
+        <svg class="feat-icon" viewBox="0 0 32 32" fill="none"><path d="M10 20l4-4 3 3 5-7" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="5" y="6" width="22" height="20" rx="2" stroke="#0a0a0a" stroke-width="1.5"/></svg>
+        <p class="feat-name">E-signature</p>
+        <p class="feat-desc">Clients sign directly in the browser — no PDFs, no friction.</p>
+      </div>
+      <div class="feature-card">
+        <svg class="feat-icon" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="10" stroke="#0a0a0a" stroke-width="1.5"/><path d="M16 6c0 0-5 4-5 10s5 10 5 10M16 6c0 0 5 4 5 10s-5 10-5 10M6 16h20" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <p class="feat-name">Custom domain</p>
+        <p class="feat-desc">Send from yourname.proposalai.com for a professional edge.</p>
+      </div>
+      <div class="feature-card">
+        <svg class="feat-icon" viewBox="0 0 32 32" fill="none"><rect x="5" y="5" width="10" height="10" rx="1.5" stroke="#0a0a0a" stroke-width="1.5"/><rect x="17" y="5" width="10" height="10" rx="1.5" stroke="#0a0a0a" stroke-width="1.5"/><rect x="5" y="17" width="10" height="10" rx="1.5" stroke="#0a0a0a" stroke-width="1.5"/><rect x="17" y="17" width="10" height="10" rx="1.5" stroke="#0a0a0a" stroke-width="1.5"/></svg>
+        <p class="feat-name">50+ templates</p>
+        <p class="feat-desc">By industry, scope, and project type — always a perfect starting point.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="container">
+    <p class="section-label fade-up">How it works</p>
+    <h2 class="section-title fade-up">Three steps.<br><span class="dim">Zero frustration.</span></h2>
+    <div class="steps">
+      <div class="fade-up">
+        <p class="step-num">01</p>
+        <p class="step-title">Describe your project</p>
+        <p class="step-desc">Paste a quick brief, pick a template, or start from scratch — ProposalAI adapts to how you work.</p>
+      </div>
+      <div class="fade-up">
+        <p class="step-num">02</p>
+        <p class="step-title">Review and refine</p>
+        <p class="step-desc">Your AI draft arrives in seconds. Tweak the tone, adjust the pricing, or let it ship as-is.</p>
+      </div>
+      <div class="fade-up">
+        <p class="step-num">03</p>
+        <p class="step-title">Send and get paid</p>
+        <p class="step-desc">Share a link. Your client reads, signs, and approves — all without leaving their browser.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="container" style="text-align:center">
+    <p class="section-label fade-up">Pricing</p>
+    <h2 class="section-title fade-up">Simple, honest pricing.<br><span class="dim">No surprises.</span></h2>
+    <p class="section-sub fade-up" style="margin-left:auto;margin-right:auto">Start free. Upgrade when you're ready to close more deals.</p>
+    <div class="pricing-grid fade-up">
+      <div class="price-card">
+        <p class="plan-name">Free</p>
+        <p class="plan-price"><sup>$</sup>0</p>
+        <p class="plan-period">per month, forever</p>
+        <ul class="plan-features">
+          <li>
+            <svg class="check" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 4" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            3 proposals / month
+          </li>
+          <li>
+            <svg class="check" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 4" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            PDF export
+          </li>
+          <li>
+            <svg class="check" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 4" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            10 templates
+          </li>
+          <li>
+            <svg class="check" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 4" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Community support
+          </li>
+        </ul>
+        <a href="#" class="plan-btn outline">Get started free</a>
+      </div>
+      <div class="price-card featured">
+        <div class="popular-badge">Most popular</div>
+        <p class="plan-name">Pro</p>
+        <p class="plan-price"><sup>$</sup>19</p>
+        <p class="plan-period">per month, billed annually</p>
+        <ul class="plan-features">
+          <li>
+            <svg class="check" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 4" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Unlimited proposals
+          </li>
+          <li>
+            <svg class="check" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 4" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Open & view tracking
+          </li>
+          <li>
+            <svg class="check" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 4" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            E-signature built-in
+          </li>
+          <li>
+            <svg class="check" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 4" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Custom domain
+          </li>
+          <li>
+            <svg class="check" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 4" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            All 50+ templates
+          </li>
+          <li>
+            <svg class="check" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 4" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Priority support
+          </li>
+        </ul>
+        <a href="#" class="plan-btn dark">Start 14-day free trial</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials" id="testimonials">
+  <div class="container">
+    <p class="section-label fade-up">Testimonials</p>
+    <h2 class="section-title fade-up">Freelancers love it.<br><span class="dim">Clients do too.</span></h2>
+    <div class="testimonials-grid">
+      <div class="testimonial fade-up">
+        <p class="t-quote">"I used to spend two hours writing each proposal. Now it's ten minutes, and my close rate went from 30% to 58%. ProposalAI paid for itself on the first deal."</p>
+        <div class="t-author">
+          <div class="t-avatar" style="background:#e8f0fe;color:#4a6fa5">JC</div>
+          <div>
+            <p class="t-name">Jamie Chen</p>
+            <p class="t-role">UX Designer · Freelance</p>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial fade-up">
+        <p class="t-quote">"Our agency sends 40+ proposals a month. ProposalAI cut our turnaround from 2 days to 20 minutes and keeps our brand voice consistent across the team."</p>
+        <div class="t-author">
+          <div class="t-avatar" style="background:#fce8f3;color:#9b4b7a">MR</div>
+          <div>
+            <p class="t-name">Marcus Reid</p>
+            <p class="t-role">Founder · Orbit Studio</p>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial fade-up">
+        <p class="t-quote">"The tracking feature is a game-changer. I know exactly when to follow up — and it's never awkward because I'm following data, not guessing."</p>
+        <div class="t-author">
+          <div class="t-avatar" style="background:#e8f5e9;color:#3a7d44">SL</div>
+          <div>
+            <p class="t-name">Sara Lund</p>
+            <p class="t-role">Copywriter · Freelance</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-cta">
+  <div class="container">
+    <h2 class="fade-up">Your next client<br><em>is waiting for a proposal.</em></h2>
+    <p class="fade-up">Stop staring at a blank page. Start winning.</p>
+    <a href="#" class="btn-white fade-up">Get started free — no card required</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <p class="footer-logo">ProposalAI</p>
+        <p class="footer-tagline">AI-powered proposals for freelancers and agencies who want to win more work.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="#">Features</a></li>
+          <li><a href="#">Pricing</a></li>
+          <li><a href="#">Templates</a></li>
+          <li><a href="#">Integrations</a></li>
+          <li><a href="#">Changelog</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+          <li><a href="#">Security</a></li>
+          <li><a href="#">Cookie Policy</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="footer-bottom">© 2025 ProposalAI, Inc. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 20) navbar.classList.add('scrolled');
+  else navbar.classList.remove('scrolled');
+}, { passive: true });
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+}, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.fade-up').forEach((el, i) => {
+  const siblings = el.parentElement ? [...el.parentElement.querySelectorAll('.fade-up')] : [];
+  const idx = siblings.indexOf(el);
+  el.style.transitionDelay = (idx * 0.08) + 's';
+  observer.observe(el);
+});
+
+const proposalText = `Proposal for Brand Identity Redesign
+
+Prepared for: FinTech Startup
+Prepared by: Your Studio
+
+Overview
+We'll craft a complete brand identity system — logo, color palette, and type system — designed to build trust with your users and stand out in a crowded market.
+
+Scope of Work
+→ Logo design (3 concepts, 3 revision rounds)
+→ Color system & accessibility audit
+→ Typography guidelines
+→ Brand usage handbook
+
+Investment
+Brand Identity Package — $4,800
+Delivery in 4 weeks from kickoff.
+
+Ready to start? Sign below to confirm.`;
+
+let typingInterval = null;
+
+document.getElementById('generateBtn').addEventListener('click', function() {
+  const btn = this;
+  btn.textContent = 'Generating…';
+  btn.disabled = true;
+  const out = document.getElementById('proposalOutput');
+  out.innerHTML = '<span class="cursor"></span>';
+  let i = 0;
+  if (typingInterval) clearInterval(typingInterval);
+  typingInterval = setInterval(() => {
+    if (i < proposalText.length) {
+      const cursor = out.querySelector('.cursor');
+      const ch = proposalText[i];
+      if (cursor) cursor.insertAdjacentText('beforebegin', ch);
+      i++;
+    } else {
+      clearInterval(typingInterval);
+      const cursor = out.querySelector('.cursor');
+      if (cursor) cursor.remove();
+      btn.textContent = 'Generate';
+      btn.disabled = false;
+    }
+  }, 18);
+});
+</script>
+</body>
+</html>
